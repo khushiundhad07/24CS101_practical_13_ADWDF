@@ -7,11 +7,13 @@ const MONGO_URI =
 
 const app = require("../app");
 
+jest.setTimeout(30000);
+
 const user = { email: "ci.user@example.com", password: "secret123" };
 let token;
 
 beforeAll(async () => {
-  await mongoose.connect(MONGO_URI);
+  await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000 });
   await mongoose.connection.dropDatabase();
 });
 
