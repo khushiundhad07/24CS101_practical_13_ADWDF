@@ -1,0 +1,42 @@
+/* Shared palette for every app in this repo: warm paper + ink, one rust accent. */
+:root {
+  --paper: 242 237 227;
+  --paper-raised: 250 247 241;
+  --paper-sunk: 236 229 216;
+  --ink: 29 26 22;
+  --ink-soft: 74 67 59;
+  --ink-mute: 123 113 102;
+  --line: 221 211 195;
+  --rust: 140 58 35;
+  --rust-soft: 239 220 207;
+  --rust-ink: 251 243 236;
+  --moss: 74 98 66;
+  --code: 36 32 27;
+  --code-ink: 238 229 214;
+  color-scheme: light;
+}
+
+.dark {
+  --paper: 21 19 15;
+  --paper-raised: 29 26 21;
+  --paper-sunk: 38 34 28;
+  --ink: 236 228 214;
+  --ink-soft: 199 189 174;
+  --ink-mute: 145 134 118;
+  --line: 53 48 40;
+  --rust: 217 138 104;
+  --rust-soft: 58 39 30;
+  --rust-ink: 29 26 21;
+  --moss: 150 178 138;
+  --code: 15 13 10;
+  --code-ink: 233 224 209;
+  color-scheme: dark;
+}
+
+html { background: rgb(var(--paper)); }
+body {
+  background: rgb(var(--paper));
+  color: rgb(var(--ink));
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: rgb(var(--rust)); color: rgb(var(--rust-ink)); }
