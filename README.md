@@ -1,60 +1,44 @@
-# Practical 13 – AI Feature: Task Description Suggestion
+# Practical 13 – AI API Integration
 
-![CI Pipeline](https://github.com/khushiundhad07/24CS101_practical_13_ADWDF/actions/workflows/ci.yml/badge.svg)
+**Student:** Khushi Undhad (24CS101)
+**Subject:** ITUE301 – Advanced Web Development Frameworks
 
-**Student:** Khushi Undhad (24CS101) · **Subject:** ITUE301 Advanced Web Development Frameworks
+## Aim
+To add an AI feature to the Task Manager app. The app suggests a task description from the task title using the Gemini API.
 
-The Task Manager gets an optional AI helper: type a task title, click **Suggest description**,
-and the backend asks Google Gemini for a short description. The user can **Use this** or dismiss it.
-
-## Architecture
-
+## How it works
 ```
-React (Projects.jsx)                 Express backend                      Gemini API
-"Suggest description" ── POST ──► /api/ai/suggest                         
-   { title } + JWT                    authMiddleware (JWT)                 
-                                      aiRateLimit (5 / min / user → 429)   
-                                      aiService ── title only ──────────► generateContent
-                                      10 s timeout (AbortController)  ◄── text
-   ◄── { suggestion, fallback } ──────                                     
+React form (task title)
+   ↓  POST /api/ai/suggest
+Express backend  →  auth check  →  rate limit  →  Gemini API
+   ↓
+Suggestion shown in an editable description box
 ```
 
-- **API key stays on the server** (`AI_API_KEY` in `.env`); the browser never sees it.
-- **Only the task title is sent** to the AI provider – no email, ids or other tasks.
-- **Graceful degradation:** if the key is missing, the provider fails, or it times out,
-  the route returns `200 { fallback: true }` with a short notice. Creating tasks keeps working.
-- **Rate limit:** more than 5 requests per minute per user → `429` with a `Retry-After` header.
-- **UI:** "Generating…" while loading, an "AI-generated – review before using" note, and the
-  suggestion is only used when the user clicks **Use this**.
+- **API key is on the backend only.** It is read from `.env` and never sent to the browser.
+- **Only the title is sent** to Gemini. No email or user data.
+- **Graceful degradation.** If Gemini fails or times out (10 s), the app still works. The user sees a message and can type the description manually.
+- **Rate limit.** 5 AI requests per user per minute. Extra requests get `429`.
 
-## New / changed files
-
+## Main files
 | File | Purpose |
 |---|---|
-| `services/aiService.js` | Calls Gemini with a 10 s timeout |
-| `middleware/aiRateLimit.js` | Per-user limit, 429 + Retry-After |
-| `routes/aiRoutes.js` | `POST /api/ai/suggest` with fallback |
-| `app.js` | Mounts `/api/ai` |
-| `task-manager-frontend/src/pages/Projects.jsx` | Suggest button, loading state, Use this |
-| `tests/ai.test.js` | Tests for success, fallback, validation and rate limit (AI calls are mocked) |
+| `services/aiService.js` | Calls the Gemini API |
+| `routes/aiRoutes.js` | `POST /api/ai/suggest` route |
+| `middleware/aiRateLimit.js` | Per-user rate limit |
+| `tests/ai.test.js` | Tests with a mocked AI provider |
 
-## Setup
+## Run locally
+```bash
+npm install
+npm start
+cd task-manager-frontend && npm install && npm run dev
+```
 
-`.env` in the project root:
-
+Create a `.env` file:
 ```
 MONGO_URI=mongodb://127.0.0.1:27017/taskmanager
 JWT_SECRET=your_secret
-AI_API_KEY=your_gemini_api_key      # optional – without it the app uses the fallback
+AI_API_KEY=your_gemini_api_key
 PORT=5000
 ```
-
-```bash
-npm install && npm start                     # backend on :5000
-cd task-manager-frontend && npm install && npm run dev   # frontend on :5173
-```
-
-## CI
-
-The GitHub Actions pipeline from Practical 12 still runs on every push: ESLint, then tests
-(API tests + AI route tests) against a MongoDB service container.
