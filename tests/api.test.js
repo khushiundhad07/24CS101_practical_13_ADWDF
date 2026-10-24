@@ -1,3 +1,6 @@
+// API tests - Node.js built-in test runner + Supertest
+const { describe, test, before, after } = require("node:test");
+const assert = require("node:assert/strict");
 const mongoose = require("mongoose");
 const request = require("supertest");
 
@@ -7,17 +10,15 @@ const MONGO_URI =
 
 const app = require("../app");
 
-jest.setTimeout(30000);
-
 const user = { email: "ci.user@example.com", password: "secret123" };
 let token;
 
-beforeAll(async () => {
+before(async () => {
   await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000 });
   await mongoose.connection.dropDatabase();
 });
 
-afterAll(async () => {
+after(async () => {
   await mongoose.connection.dropDatabase();
   await mongoose.disconnect();
 });
@@ -25,22 +26,22 @@ afterAll(async () => {
 describe("Health check", () => {
   test("GET /api/health returns ok", async () => {
     const res = await request(app).get("/api/health");
-    expect(res.status).toBe(200);
-    expect(res.body.status).toBe("ok");
+    assert.equal(res.status, 200);
+    assert.equal(res.body.status, "ok");
   });
 });
 
 describe("Auth endpoints", () => {
   test("POST /api/auth/register creates a user", async () => {
     const res = await request(app).post("/api/auth/register").send(user);
-    expect(res.status).toBe(201);
-    expect(res.body.user.email).toBe(user.email);
+    assert.equal(res.status, 201);
+    assert.equal(res.body.user.email, user.email);
   });
 
   test("POST /api/auth/login returns a JWT", async () => {
     const res = await request(app).post("/api/auth/login").send(user);
-    expect(res.status).toBe(200);
-    expect(typeof res.body.token).toBe("string");
+    assert.equal(res.status, 200);
+    assert.equal(typeof res.body.token, "string");
     token = res.body.token;
   });
 
@@ -48,23 +49,23 @@ describe("Auth endpoints", () => {
     const res = await request(app)
       .post("/api/auth/login")
       .send({ email: user.email, password: "wrongpass" });
-    expect(res.status).toBe(401);
+    assert.equal(res.status, 401);
   });
 });
 
 describe("Task endpoints", () => {
   test("GET /api/tasks without a token returns 401", async () => {
     const res = await request(app).get("/api/tasks");
-    expect(res.status).toBe(401);
+    assert.equal(res.status, 401);
   });
 
   test("POST /api/tasks creates a task", async () => {
     const res = await request(app)
       .post("/api/tasks")
       .set("Authorization", `Bearer ${token}`)
-      .send({ title: "CI task", description: "Created by Jest" });
-    expect(res.status).toBe(201);
-    expect(res.body.title).toBe("CI task");
+      .send({ title: "CI task", description: "Created by the test" });
+    assert.equal(res.status, 201);
+    assert.equal(res.body.title, "CI task");
   });
 
   test("POST /api/tasks without a title returns 400", async () => {
@@ -72,15 +73,15 @@ describe("Task endpoints", () => {
       .post("/api/tasks")
       .set("Authorization", `Bearer ${token}`)
       .send({ description: "No title" });
-    expect(res.status).toBe(400);
+    assert.equal(res.status, 400);
   });
 
   test("GET /api/tasks returns the user's tasks", async () => {
     const res = await request(app)
       .get("/api/tasks")
       .set("Authorization", `Bearer ${token}`);
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBe(1);
+    assert.equal(res.status, 200);
+    assert.ok(Array.isArray(res.body));
+    assert.equal(res.body.length, 1);
   });
 });

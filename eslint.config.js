@@ -11,7 +11,7 @@ module.exports = [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "commonjs",
-      globals: { ...globals.node, ...globals.jest }
+      globals: { ...globals.node }
     },
     rules: {
       "no-unused-vars": ["error", { args: "none", caughtErrors: "none" }]

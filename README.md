@@ -56,5 +56,5 @@ cd task-manager-frontend && npm install && npm run dev   # frontend on :5173
 
 ## CI
 
-The GitHub Actions pipeline from Practical 12 still runs on every push: ESLint, then Jest
+The GitHub Actions pipeline from Practical 12 still runs on every push: ESLint, then tests
 (API tests + AI route tests) against a MongoDB service container.
